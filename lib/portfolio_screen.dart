@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'supabase_client_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class PortfolioScreen extends StatefulWidget {
+class PortfolioScreen extends ConsumerStatefulWidget {
   const PortfolioScreen({super.key});
 
   @override
-  State<PortfolioScreen> createState() => _PortfolioScreenState();
+  ConsumerState<PortfolioScreen> createState() => _PortfolioScreenState();
 }
 
-class _PortfolioScreenState extends State<PortfolioScreen> {
-  final supabase = Supabase.instance.client;
+class _PortfolioScreenState extends ConsumerState<PortfolioScreen> {
   bool _isLoading = true;
   Map<String, dynamic>? _profileData;
 
@@ -21,6 +23,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
   }
 
   Future<void> _fetchMyData() async {
+    final supabase = ref.read(supabaseClientProvider);
     try {
       final userId = supabase.auth.currentUser?.id;
       if (userId == null) return;
@@ -148,7 +151,12 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
 
             Center(
               child: TextButton.icon(
-                onPressed: () => supabase.auth.signOut(),
+                onPressed: () async {
+                  final supabase = ref.read(supabaseClientProvider);
+                  await supabase.auth.signOut();
+                  if (!mounted) return;
+                  context.go('/splash');
+                },
                 icon: const Icon(Icons.logout, color: Colors.redAccent, size: 18),
                 label: const Text("Logout from CiniFind", style: TextStyle(color: Colors.redAccent)),
               ),

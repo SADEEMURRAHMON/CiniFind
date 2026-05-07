@@ -1,20 +1,22 @@
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'supabase_client_provider.dart';
 import 'portfolio_screen.dart';
 import 'location_service.dart';
 import 'discover_screen.dart';
-final supabase = Supabase.instance.client;
 
-class JoinFormScreen extends StatefulWidget {
+class JoinFormScreen extends ConsumerStatefulWidget {
   const JoinFormScreen({super.key});
 
   @override
-  State<JoinFormScreen> createState() => _JoinFormScreenState();
+  ConsumerState<JoinFormScreen> createState() => _JoinFormScreenState();
 }
 
-class _JoinFormScreenState extends State<JoinFormScreen> {
+class _JoinFormScreenState extends ConsumerState<JoinFormScreen> {
   XFile? _imageFile;
   final ImagePicker _picker = ImagePicker();
 
@@ -164,6 +166,8 @@ class _JoinFormScreenState extends State<JoinFormScreen> {
                 minimumSize: const Size(double.infinity, 55),
               ),
               onPressed: () async {
+                final supabase = ref.read(supabaseClientProvider);
+
                 if (_fullNameController.text.isEmpty || _stageNameController.text.isEmpty || _selectedRoles.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please fill all compulsory fields")));
                   return;
@@ -199,12 +203,7 @@ class _JoinFormScreenState extends State<JoinFormScreen> {
                   if (!mounted) return;
 
                   // Move to Portfolio Screen
-                  // PASTE THIS CLEAN BLOCK
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => const DiscoverScreen()),
-                        (route) => false,
-                  );
+                  context.go('/home');
                 } catch (e) {
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Save Error: $e")));

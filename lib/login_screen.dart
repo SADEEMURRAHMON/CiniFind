@@ -1,23 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'join_form_screen.dart';
+import 'supabase_client_provider.dart';
 
 // Change this line
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
 // And this line
-class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
+class _LoginScreenState extends ConsumerState<LoginScreen>
+    with SingleTickerProviderStateMixin {
   // ... keep the rest of your code the same ...
   late TabController _tabController;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-  final supabase = Supabase.instance.client;
 
   @override
   void initState() {
@@ -28,6 +30,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   Future<void> _handleAuth() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
+
+    final supabase = ref.read(supabaseClientProvider);
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please fill all fields")));
@@ -40,15 +44,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         // SIGN UP
         await supabase.auth.signUp(email: email, password: password);
         if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const JoinFormScreen()),
-          );
+          context.go('/register');
         }
       } else {
         // SIGN IN
         await supabase.auth.signInWithPassword(email: email, password: password);
-        // The StreamBuilder in main.dart will automatically move to Marketplace
+        if (mounted) context.go('/splash');
       }
     } on AuthException catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));

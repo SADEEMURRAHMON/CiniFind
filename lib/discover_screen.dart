@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'supabase_client_provider.dart';
 import 'portfolio_screen.dart';
 import 'discover_screen.dart';
 import 'profile_detail_screen.dart';
 
-class DiscoverScreen extends StatefulWidget {
+class DiscoverScreen extends ConsumerStatefulWidget {
   const DiscoverScreen({super.key});
 
   @override
-  State<DiscoverScreen> createState() => _DiscoverScreenState();
+  ConsumerState<DiscoverScreen> createState() => _DiscoverScreenState();
 }
 
-class _DiscoverScreenState extends State<DiscoverScreen> {
-  final supabase = Supabase.instance.client;
+class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   List<dynamic> _profiles = [];
   bool _isLoading = true;
 
@@ -40,6 +42,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     if (_profiles.isEmpty) setState(() => _isLoading = true);
 
     try {
+      final supabase = ref.read(supabaseClientProvider);
       var query = supabase.from('profiles').select();
 
       if (_selectedFilterRole != 'All') {
@@ -76,7 +79,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () async {
+              final supabase = ref.read(supabaseClientProvider);
               await supabase.auth.signOut();
+              if (!mounted) return;
+              context.go('/splash');
             },
           ),
         ],
@@ -163,6 +169,13 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   Widget _buildProfileCard(dynamic profile) {
     return GestureDetector(
       onTap: () {
+        final id = profile['id']?.toString();
+        if (id != null && id.isNotEmpty) {
+          context.go('/profile/$id');
+          return;
+        }
+
+        // Fallback to the existing detailed widget if the profile id is missing.
         Navigator.push(
           context,
           MaterialPageRoute(
