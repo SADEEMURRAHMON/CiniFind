@@ -23,7 +23,7 @@ class CiniFindApp extends StatelessWidget {
       title: 'CiniFind',
       theme: ThemeData(
         brightness: Brightness.dark,
-        primaryColor: Colors.white,
+        primaryColor: Colors.white:wq,
         scaffoldBackgroundColor: Colors.red,
         colorScheme: const ColorScheme.dark(primary: Colors.amber),
       ),
